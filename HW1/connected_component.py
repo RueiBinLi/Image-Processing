@@ -13,10 +13,6 @@ def to_binary(img):
         threshold_value = 127
         _, binary_image = cv2.threshold(grayscale_image, threshold_value, 255, cv2.THRESH_BINARY_INV)
 
-        # cv2.imshow('Original Color Image', img)
-        # cv2.imshow('Binary Image', grayscale_image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
         return binary_image
         
 def find(parent, i):
