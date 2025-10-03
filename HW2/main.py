@@ -59,26 +59,27 @@ def gaussian_filter(input_img, kernel_size, sigma):
 
 def median_filter(input_img, kernel_size):
     ############### YOUR CODE STARTS HERE ###############
-    gray_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
+    b, g, r = cv2.split(input_img)
 
-    noise = np.zeros_like(gray_img)
-    cv2.randu(noise, 0, 255)
-    noisy_image = gray_img.copy()
-    noisy_image[noise < 10] = 0   # pepper
-    noisy_image[noise > 245] = 255 # salt
+    b_filter = median_filter_convolution(b, kernel_size)
+    g_filter = median_filter_convolution(g, kernel_size)
+    r_filter = median_filter_convolution(r, kernel_size)
 
-    i_height, i_width = noisy_image.shape
-    
-    padded_image = padding(noisy_image, kernel_size, kernel_size)
+    output_img = cv2.merge((b_filter, g_filter, r_filter))
+    output_img = np.clip(output_img, 0, 255)
+    ############### YOUR CODE ENDS HERE #################
+    return output_img.astype(np.uint8)
+
+def median_filter_convolution(input_img, kernel_size):
+    i_height, i_width = input_img.shape
+
+    padded_img = padding(input_img, kernel_size, kernel_size)
     output_img = np.zeros_like(input_img, dtype=np.float64)
-    
+
     for y in range(i_height):
         for x in range(i_width):
-            roi = padded_image[y : y + kernel_size, x : x + kernel_size]
-            median_value = np.median(roi)
-            output_img[y, x] = median_value
-    output_img = output_img.astype(np.uint8)
-    ############### YOUR CODE ENDS HERE #################
+            roi = padded_img[y: y + kernel_size, x : x + kernel_size]
+            output_img[y, x] = np.median(roi)
     return output_img
 
 def laplacian_sharpening(input_img, kernel):
