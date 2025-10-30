@@ -27,10 +27,22 @@ def gamma_correction(img, c, gamma):
 TODO Part 2: Histogram equalization
 """
 def histogram_equalization(img):
-    hist, bins = np.histogram(img.flatten(), 256, [0, 256])
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    v_channel = hsv_img[:, :, 2]
+    hist, bins = np.histogram(v_channel, 256, [0, 256])
     
     cdf = hist.cumsum()
     cdf_masked = np.ma.masked_equal(cdf, 0)
+    cdf_masked = (cdf_masked - cdf_masked.min()) * 255 / (cdf_masked.max() - cdf_masked.min())
+    cdf_final = np.ma.filled(cdf_masked, 0).astype("uint8")
+
+    v_equalized = cdf_final[v_channel]
+
+    corrected_hsv = hsv_img.copy()
+    corrected_hsv[:, :, 2] = v_equalized
+    corrected_img = cv2.cvtColor(corrected_hsv, cv2.COLOR_HSV2BGR)
+
+    return corrected_img
 
 """
 Bonus
@@ -58,9 +70,11 @@ def main():
         cv2.waitKey(0)
 
     # TODO Part 2: Image enhancement using the better balanced image as input
-    histogram_equalization_img = histogram_equalization()
+    histogram_equalization_img = histogram_equalization(img)
 
     cv2.imshow("Histogram equalization", np.vstack([img, histogram_equalization_img]))
+    output_dir = "./histogram.bmp"
+    cv2.imwrite(output_dir, histogram_equalization_img)
     cv2.waitKey(0)
 
 
