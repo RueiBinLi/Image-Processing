@@ -5,21 +5,32 @@ import numpy as np
 """
 TODO Part 1: Gamma correction
 """
-def gamma_correction(img):
+def gamma_correction(img, c, gamma):
+    table = np.array([
+        ((c * (i / 255.0)) ** gamma) * 255.0
+        for i in np.arange(0, 256)
+    ])
+
+    table = np.clip(table, 0, 255).astype("uint8")
+
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    v = hsv_img[:, :, 2]
-    height, width = img.shape
-    for x in range(height):
-        for y in range(width):
-            v[x,y] = 
+    v_channel = hsv_img[:, :, 2]
+    new_v = table[v_channel]
+    corrected_hsv = hsv_img.copy()
+    corrected_hsv[:, :, 2] = new_v
+    corrected_img = cv2.cvtColor(corrected_hsv, cv2.COLOR_HSV2BGR)
+
+    return corrected_img
 
 
 """
 TODO Part 2: Histogram equalization
 """
-def histogram_equalization():
-    raise NotImplementedError
-
+def histogram_equalization(img):
+    hist, bins = np.histogram(img.flatten(), 256, [0, 256])
+    
+    cdf = hist.cumsum()
+    cdf_masked = np.ma.masked_equal(cdf, 0)
 
 """
 Bonus
@@ -35,13 +46,15 @@ def main():
     img = cv2.imread("data/image_enhancement/input.bmp")
 
     # TODO: modify the hyperparameter
-    gamma_list = [1, 1, 1] # gamma value for gamma correction
+    gamma_list = [0.6, 1, 3] # gamma value for gamma correction
 
     # TODO Part 1: Gamma correction
     for gamma in gamma_list:
-        gamma_correction_img = gamma_correction()
+        gamma_correction_img = gamma_correction(img, 1, gamma)
 
         cv2.imshow("Gamma correction | Gamma = {}".format(gamma), np.vstack([img, gamma_correction_img]))
+        output_dir = "./gamma_" + str(gamma) + ".bmp"
+        cv2.imwrite(output_dir, gamma_correction_img)
         cv2.waitKey(0)
 
     # TODO Part 2: Image enhancement using the better balanced image as input
